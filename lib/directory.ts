@@ -1,0 +1,5 @@
+import providers from "../data/demo_providers.json";
+export type Provider=(typeof providers)[number];
+export {providers};
+export function mismatches(provider:Provider){return provider.listings.map(listing=>{const fields:string[]=[];if(listing.phone!==provider.authoritative.phone)fields.push("phone");if(listing.address!==provider.authoritative.address)fields.push("address");if(listing.acceptingNewPatients!==provider.authoritative.acceptingNewPatients)fields.push("availability");return {...listing,fields,severity:fields.length>1?"high":fields.length?"medium":"clear"}})}
+export function createCase(provider:Provider,insurer:string){const finding=mismatches(provider).find(item=>item.insurer===insurer);if(!finding||finding.fields.length===0)throw new Error("Select a listing with a verified mismatch.");return {caseId:`DG-${provider.state}-${provider.npi.slice(-4)}-${finding.insurer.replace(/[^A-Z]/gi,"").slice(0,3).toUpperCase()}`,insurer:finding.insurer,fields:finding.fields,evidence:`Compared ${finding.checked} directory capture with clinician-approved profile`,status:"Draft — clinician review required"}}
